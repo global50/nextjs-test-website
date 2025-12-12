@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, MessageCircle, Bell, Settings, User, Users } from 'lucide-react';
+import { Home, Search, MessageCircle, Bell, Settings, Users, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthModal } from '@/components/auth/AuthModal';
 import { currentUser } from '@/lib/mockData';
 
 const navItems = [
@@ -17,6 +20,22 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user, profile, loading, signOut } = useAuth();
+
+  const displayUser = user && profile ? {
+    username: profile.username,
+    full_name: profile.full_name,
+    avatar_url: profile.avatar_url,
+  } : currentUser;
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white">
@@ -50,26 +69,53 @@ export function Sidebar() {
         </nav>
 
         <div className="border-t p-4">
-          <Link
-            href={`/profile/${currentUser.username}`}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors"
-          >
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={currentUser.avatar_url || undefined} />
-              <AvatarFallback>
-                {currentUser.full_name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{currentUser.full_name}</p>
-              <p className="text-xs text-gray-500 truncate">@{currentUser.username}</p>
+          {loading ? (
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                <div className="h-3 bg-gray-200 rounded w-2/3 animate-pulse" />
+              </div>
             </div>
-          </Link>
+          ) : user ? (
+            <div className="space-y-2">
+              <Link
+                href={`/profile/${displayUser.username}`}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors"
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={displayUser.avatar_url || undefined} />
+                  <AvatarFallback>{getInitials(displayUser.full_name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{displayUser.full_name}</p>
+                  <p className="text-xs text-gray-500 truncate">@{displayUser.username}</p>
+                </div>
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-gray-600 hover:text-gray-900"
+                onClick={signOut}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <AuthModal defaultView="login">
+                <Button variant="outline" className="w-full">
+                  Sign in
+                </Button>
+              </AuthModal>
+              <AuthModal defaultView="signup">
+                <Button className="w-full">
+                  Sign up
+                </Button>
+              </AuthModal>
+            </div>
+          )}
         </div>
       </div>
     </aside>

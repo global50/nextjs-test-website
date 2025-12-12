@@ -5,15 +5,17 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 type UserCardProps = {
   user: MockUser;
   onFollow?: (userId: string) => Promise<void>;
   onUnfollow?: (userId: string) => Promise<void>;
   showFollowButton?: boolean;
+  isAuthenticated?: boolean;
 };
 
-export function UserCard({ user, onFollow, onUnfollow, showFollowButton = true }: UserCardProps) {
+export function UserCard({ user, onFollow, onUnfollow, showFollowButton = true, isAuthenticated = true }: UserCardProps) {
   const initials = user.full_name
     .split(' ')
     .map((n) => n[0])
@@ -22,6 +24,7 @@ export function UserCard({ user, onFollow, onUnfollow, showFollowButton = true }
     .slice(0, 2);
 
   const handleFollowToggle = async () => {
+    if (!isAuthenticated) return;
     if (user.isFollowing) {
       await onUnfollow?.(user.id);
     } else {
@@ -56,13 +59,19 @@ export function UserCard({ user, onFollow, onUnfollow, showFollowButton = true }
       </CardContent>
       {showFollowButton && (
         <CardFooter>
-          <Button
-            onClick={handleFollowToggle}
-            variant={user.isFollowing ? 'outline' : 'default'}
-            className="w-full"
-          >
-            {user.isFollowing ? 'Unfollow' : 'Follow'}
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              onClick={handleFollowToggle}
+              variant={user.isFollowing ? 'outline' : 'default'}
+              className="w-full"
+            >
+              {user.isFollowing ? 'Unfollow' : 'Follow'}
+            </Button>
+          ) : (
+            <AuthModal defaultView="signup">
+              <Button className="w-full">Follow</Button>
+            </AuthModal>
+          )}
         </CardFooter>
       )}
     </Card>

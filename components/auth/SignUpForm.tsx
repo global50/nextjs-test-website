@@ -8,7 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 
-export function SignUpForm({ onToggle }: { onToggle: () => void }) {
+type SignUpFormProps = {
+  onToggle: () => void;
+  onSuccess?: () => void;
+};
+
+export function SignUpForm({ onToggle, onSuccess }: SignUpFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -35,6 +40,7 @@ export function SignUpForm({ onToggle }: { onToggle: () => void }) {
       setError(error.message);
       setLoading(false);
     } else {
+      onSuccess?.();
       router.push('/feed');
     }
   };

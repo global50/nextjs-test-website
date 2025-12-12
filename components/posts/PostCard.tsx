@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 type PostCardProps = {
   post: MockPost;
@@ -15,9 +16,10 @@ type PostCardProps = {
   onUnlike?: (postId: string) => Promise<void>;
   onDelete?: (postId: string) => Promise<void>;
   currentUserId?: string;
+  isAuthenticated?: boolean;
 };
 
-export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId }: PostCardProps) {
+export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId, isAuthenticated = true }: PostCardProps) {
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [liked, setLiked] = useState(post.isLiked || false);
@@ -31,7 +33,7 @@ export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId }: Po
     .slice(0, 2) || '??';
 
   const handleLikeToggle = async () => {
-    if (isLiking) return;
+    if (!isAuthenticated || isLiking) return;
     setIsLiking(true);
 
     try {
@@ -111,16 +113,25 @@ export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId }: Po
         )}
       </CardContent>
       <CardFooter className="flex gap-4 pt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLikeToggle}
-          disabled={isLiking}
-          className={`gap-2 ${liked ? 'text-red-600' : ''}`}
-        >
-          <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-          <span>{likeCount}</span>
-        </Button>
+        {isAuthenticated ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLikeToggle}
+            disabled={isLiking}
+            className={`gap-2 ${liked ? 'text-red-600' : ''}`}
+          >
+            <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+            <span>{likeCount}</span>
+          </Button>
+        ) : (
+          <AuthModal defaultView="login">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Heart className="h-4 w-4" />
+              <span>{likeCount}</span>
+            </Button>
+          </AuthModal>
+        )}
         <Button variant="ghost" size="sm" className="gap-2">
           <MessageCircle className="h-4 w-4" />
           <span>{post._count?.comments || 0}</span>
