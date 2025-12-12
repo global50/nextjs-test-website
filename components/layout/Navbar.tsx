@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export function Navbar() {
   const { profile, signOut } = useAuth();
@@ -26,7 +27,7 @@ export function Navbar() {
     .slice(0, 2);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-6">
@@ -34,7 +35,7 @@ export function Navbar() {
               <div className="p-2 bg-blue-600 rounded-lg">
                 <Users className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Social</span>
+              <span className="text-xl font-bold">Social</span>
             </Link>
             <div className="hidden md:flex items-center gap-1">
               <Link href="/feed">
@@ -52,15 +53,17 @@ export function Navbar() {
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar>
-                  <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar>
+                    <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name} />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1">
@@ -81,7 +84,8 @@ export function Navbar() {
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </nav>
