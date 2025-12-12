@@ -5,10 +5,13 @@ import { MockPost } from '@/lib/mockData';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Trash2 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Heart, MessageCircle, Trash2, Bookmark, Share2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { CommentSection } from './CommentSection';
+import { supabase } from '@/lib/supabase';
 
 type PostCardProps = {
   post: MockPost;
@@ -17,13 +20,18 @@ type PostCardProps = {
   onDelete?: (postId: string) => Promise<void>;
   currentUserId?: string;
   isAuthenticated?: boolean;
+  isBookmarked?: boolean;
 };
 
-export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId, isAuthenticated = true }: PostCardProps) {
+export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId, isAuthenticated = true, isBookmarked: initialBookmarked = false }: PostCardProps) {
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [liked, setLiked] = useState(post.isLiked || false);
   const [likeCount, setLikeCount] = useState(post._count?.likes || 0);
+  const [commentCount, setCommentCount] = useState(post._count?.comments || 0);
+  const [showComments, setShowComments] = useState(false);
+  const [bookmarked, setBookmarked] = useState(initialBookmarked);
+  const [bookmarking, setBookmarking] = useState(false);
 
   const initials = post.profiles?.full_name
     .split(' ')
@@ -63,6 +71,41 @@ export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId, isAu
     } catch (error) {
       console.error('Error deleting post:', error);
       setIsDeleting(false);
+    }
+  };
+
+  const handleBookmarkToggle = async () => {
+    if (!isAuthenticated || !currentUserId || bookmarking) return;
+    setBookmarking(true);
+
+    try {
+      if (bookmarked) {
+        await supabase.from('bookmarks').delete().eq('post_id', post.id).eq('user_id', currentUserId);
+        setBookmarked(false);
+      } else {
+        await supabase.from('bookmarks').insert({ post_id: post.id, user_id: currentUserId });
+        setBookmarked(true);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    } finally {
+      setBookmarking(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by ${post.profiles?.full_name}`,
+          text: post.content.slice(0, 100),
+          url: window.location.origin + `/post/${post.id}`,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.origin + `/post/${post.id}`);
     }
   };
 
@@ -112,30 +155,70 @@ export function PostCard({ post, onLike, onUnlike, onDelete, currentUserId, isAu
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex gap-4 pt-2">
-        {isAuthenticated ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLikeToggle}
-            disabled={isLiking}
-            className={`gap-2 ${liked ? 'text-red-600' : ''}`}
-          >
-            <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-            <span>{likeCount}</span>
-          </Button>
-        ) : (
-          <AuthModal defaultView="login">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Heart className="h-4 w-4" />
-              <span>{likeCount}</span>
+      <CardFooter className="flex flex-col gap-3 pt-2">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex gap-1">
+            {isAuthenticated ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLikeToggle}
+                disabled={isLiking}
+                className={`gap-2 ${liked ? 'text-red-600' : ''}`}
+              >
+                <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+                <span>{likeCount}</span>
+              </Button>
+            ) : (
+              <AuthModal defaultView="login">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Heart className="h-4 w-4" />
+                  <span>{likeCount}</span>
+                </Button>
+              </AuthModal>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowComments(!showComments)}
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>{commentCount}</span>
+              {showComments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
-          </AuthModal>
+            <Button variant="ghost" size="sm" onClick={handleShare}>
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+          {isAuthenticated ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBookmarkToggle}
+              disabled={bookmarking}
+              className={bookmarked ? 'text-blue-600' : ''}
+            >
+              <Bookmark className={`h-4 w-4 ${bookmarked ? 'fill-current' : ''}`} />
+            </Button>
+          ) : (
+            <AuthModal defaultView="login">
+              <Button variant="ghost" size="sm">
+                <Bookmark className="h-4 w-4" />
+              </Button>
+            </AuthModal>
+          )}
+        </div>
+
+        {showComments && (
+          <div className="w-full border-t pt-3">
+            <CommentSection
+              postId={post.id}
+              isAuthenticated={isAuthenticated}
+              currentUserId={currentUserId}
+            />
+          </div>
         )}
-        <Button variant="ghost" size="sm" className="gap-2">
-          <MessageCircle className="h-4 w-4" />
-          <span>{post._count?.comments || 0}</span>
-        </Button>
       </CardFooter>
     </Card>
   );

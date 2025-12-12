@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, MessageCircle, Bell, Settings, Users, LogOut } from 'lucide-react';
+import { Home, Search, MessageCircle, Bell, Settings, Users, LogOut, Briefcase, Building2, Bookmark } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,11 @@ import { currentUser } from '@/lib/mockData';
 
 const navItems = [
   { href: '/feed', label: 'Feed', icon: Home },
-  { href: '/explore', label: 'Explore', icon: Search },
+  { href: '/explore', label: 'People', icon: Users },
+  { href: '/search', label: 'Search', icon: Search },
+  { href: '/jobs', label: 'Jobs', icon: Briefcase },
+  { href: '/companies', label: 'Companies', icon: Building2 },
+  { href: '/bookmarks', label: 'Bookmarks', icon: Bookmark },
   { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/settings', label: 'Settings', icon: Settings },
