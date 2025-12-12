@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ThemeSwitcher } from '@/components/theme/ThemeSwitcher';
 
 export function Navbar() {
   const { profile, signOut } = useAuth();
@@ -26,15 +27,15 @@ export function Navbar() {
     .slice(0, 2);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/feed" className="flex items-center gap-2">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <Users className="h-5 w-5 text-white" />
+              <div className="p-2 bg-primary rounded-lg">
+                <Users className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Social</span>
+              <span className="text-xl font-bold text-foreground">Social</span>
             </Link>
             <div className="hidden md:flex items-center gap-1">
               <Link href="/feed">
@@ -52,7 +53,9 @@ export function Navbar() {
             </div>
           </div>
 
-          <DropdownMenu>
+          <div className="flex items-center gap-2">
+            <ThemeSwitcher />
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar>
@@ -82,6 +85,7 @@ export function Navbar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </div>
     </nav>
