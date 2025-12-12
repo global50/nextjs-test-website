@@ -53,25 +53,25 @@ export function Sidebar() {
       )}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white transition-transform duration-300',
+          'fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card transition-transform duration-300',
           !isOpen && '-translate-x-full'
         )}
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between border-b px-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <Users className="h-5 w-5 text-white" />
+              <div className="p-2 bg-primary rounded-lg">
+                <Users className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Social</span>
+              <span className="text-xl font-bold text-foreground">Social</span>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={toggle}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
+              className="h-8 w-8 p-0"
             >
-              <PanelLeftClose className="h-5 w-5 text-gray-600" />
+              <PanelLeftClose className="h-5 w-5" />
             </Button>
           </div>
 
@@ -85,11 +85,11 @@ export function Sidebar() {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-foreground hover:bg-accent'
                 )}
               >
-                <item.icon className={cn('h-5 w-5', isActive ? 'text-blue-600' : 'text-gray-500')} />
+                <item.icon className={cn('h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
                 {item.label}
               </Link>
             );
@@ -99,31 +99,31 @@ export function Sidebar() {
         <div className="border-t p-4">
           {loading ? (
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+              <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                <div className="h-3 bg-gray-200 rounded w-2/3 animate-pulse" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+                <div className="h-3 bg-muted rounded w-2/3 animate-pulse" />
               </div>
             </div>
           ) : user ? (
             <div className="space-y-2">
               <Link
                 href={`/profile/${displayUser.username}`}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-accent transition-colors"
               >
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={displayUser.avatar_url || undefined} />
                   <AvatarFallback>{getInitials(displayUser.full_name)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{displayUser.full_name}</p>
-                  <p className="text-xs text-gray-500 truncate">@{displayUser.username}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{displayUser.full_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">@{displayUser.username}</p>
                 </div>
               </Link>
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start text-gray-600 hover:text-gray-900"
+                className="w-full justify-start"
                 onClick={signOut}
               >
                 <LogOut className="h-4 w-4 mr-2" />
