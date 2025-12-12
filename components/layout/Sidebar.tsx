@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, MessageCircle, Bell, Settings, Users, LogOut, Briefcase, Building2, Bookmark } from 'lucide-react';
+import { Home, Search, MessageCircle, Bell, Settings, Users, LogOut, Briefcase, Building2, Bookmark, PanelLeftClose, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { currentUser } from '@/lib/mockData';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 const navItems = [
   { href: '/feed', label: 'Feed', icon: Home },
@@ -25,6 +26,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user, profile, loading, signOut } = useAuth();
+  const { isOpen, toggle, close } = useSidebar();
 
   const displayUser = user && profile ? {
     username: profile.username,
@@ -42,14 +44,36 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white">
-      <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center gap-3 border-b px-6">
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <Users className="h-5 w-5 text-white" />
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={close}
+        />
+      )}
+      <aside
+        className={cn(
+          'fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white transition-transform duration-300',
+          !isOpen && '-translate-x-full'
+        )}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-between border-b px-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">Social</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggle}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+            >
+              <PanelLeftClose className="h-5 w-5 text-gray-600" />
+            </Button>
           </div>
-          <span className="text-xl font-bold text-gray-900">Social</span>
-        </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navItems.map((item) => {
@@ -123,5 +147,6 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }
