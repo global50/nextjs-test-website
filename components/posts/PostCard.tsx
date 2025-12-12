@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Post } from '@/lib/supabase';
+import { MockPost } from '@/lib/mockData';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
 type PostCardProps = {
-  post: Post & {
-    profiles?: { username: string; full_name: string; avatar_url: string | null };
-    _count?: { likes: number; comments: number };
-    isLiked?: boolean;
-  };
+  post: MockPost;
   onLike?: (postId: string) => Promise<void>;
   onUnlike?: (postId: string) => Promise<void>;
   onDelete?: (postId: string) => Promise<void>;

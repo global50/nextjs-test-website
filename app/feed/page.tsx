@@ -1,151 +1,120 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/layout/Navbar';
-import { CreatePostForm } from '@/components/posts/CreatePostForm';
+import { useState } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { PostCard } from '@/components/posts/PostCard';
-import { supabase, Post } from '@/lib/supabase';
+import { mockPosts, currentUser, MockPost } from '@/lib/mockData';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ImageIcon } from 'lucide-react';
 
 export default function FeedPage() {
-  const { user, profile, loading } = useAuth();
-  const router = useRouter();
-  const [posts, setPosts] = useState<any[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/');
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
-    if (user) {
-      loadPosts();
-    }
-  }, [user]);
-
-  const loadPosts = async () => {
-    try {
-      setLoadingPosts(true);
-      const { data: postsData, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles:user_id (username, full_name, avatar_url)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-
-      const postsWithCounts = await Promise.all(
-        (postsData || []).map(async (post) => {
-          const [likesResult, commentsResult, userLikeResult] = await Promise.all([
-            supabase.from('likes').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
-            supabase.from('comments').select('id', { count: 'exact', head: true }).eq('post_id', post.id),
-            supabase.from('likes').select('id').eq('post_id', post.id).eq('user_id', user?.id).maybeSingle(),
-          ]);
-
-          return {
-            ...post,
-            _count: {
-              likes: likesResult.count || 0,
-              comments: commentsResult.count || 0,
-            },
-            isLiked: !!userLikeResult.data,
-          };
-        })
-      );
-
-      setPosts(postsWithCounts);
-    } catch (error) {
-      console.error('Error loading posts:', error);
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
+  const [posts, setPosts] = useState<MockPost[]>(mockPosts);
+  const [newPost, setNewPost] = useState('');
 
   const handleLike = async (postId: string) => {
-    try {
-      const { error } = await supabase.from('likes').insert([
-        {
-          post_id: postId,
-          user_id: user?.id,
-        },
-      ]);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error liking post:', error);
-      throw error;
-    }
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, isLiked: true, _count: { ...p._count, likes: p._count.likes + 1 } }
+          : p
+      )
+    );
   };
 
   const handleUnlike = async (postId: string) => {
-    try {
-      const { error } = await supabase
-        .from('likes')
-        .delete()
-        .eq('post_id', postId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error unliking post:', error);
-      throw error;
-    }
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, isLiked: false, _count: { ...p._count, likes: p._count.likes - 1 } }
+          : p
+      )
+    );
   };
 
   const handleDelete = async (postId: string) => {
-    try {
-      const { error } = await supabase.from('posts').delete().eq('id', postId);
-
-      if (error) throw error;
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      throw error;
-    }
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
-  }
+  const handleCreatePost = () => {
+    if (!newPost.trim()) return;
+
+    const post: MockPost = {
+      id: `post-${Date.now()}`,
+      user_id: currentUser.id,
+      content: newPost,
+      image_url: null,
+      created_at: new Date().toISOString(),
+      profiles: {
+        username: currentUser.username,
+        full_name: currentUser.full_name,
+        avatar_url: currentUser.avatar_url,
+      },
+      _count: { likes: 0, comments: 0 },
+      isLiked: false,
+    };
+
+    setPosts([post, ...posts]);
+    setNewPost('');
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="space-y-6">
-          <CreatePostForm onPostCreated={loadPosts} />
-          {loadingPosts ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+    <MainLayout>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={currentUser.avatar_url || undefined} />
+                <AvatarFallback>
+                  {currentUser.full_name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-3">
+                <Textarea
+                  placeholder="What's on your mind?"
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                  className="min-h-[80px] resize-none"
+                />
+                <div className="flex items-center justify-between">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground">
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Photo
+                  </Button>
+                  <Button onClick={handleCreatePost} disabled={!newPost.trim()}>
+                    Post
+                  </Button>
+                </div>
+              </div>
             </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
-            </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={handleLike}
-                onUnlike={handleUnlike}
-                onDelete={handleDelete}
-                currentUserId={user?.id}
-              />
-            ))
-          )}
-        </div>
-      </main>
-    </div>
+          </CardContent>
+        </Card>
+
+        {posts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onLike={handleLike}
+              onUnlike={handleUnlike}
+              onDelete={handleDelete}
+              currentUserId={currentUser.id}
+            />
+          ))
+        )}
+      </div>
+    </MainLayout>
   );
 }

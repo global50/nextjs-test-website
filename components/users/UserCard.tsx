@@ -1,16 +1,13 @@
 'use client';
 
-import { Profile } from '@/lib/supabase';
+import { MockUser } from '@/lib/mockData';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 type UserCardProps = {
-  user: Profile & {
-    isFollowing?: boolean;
-    _count?: { followers: number; following: number };
-  };
+  user: MockUser;
   onFollow?: (userId: string) => Promise<void>;
   onUnfollow?: (userId: string) => Promise<void>;
   showFollowButton?: boolean;
