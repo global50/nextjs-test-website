@@ -10,7 +10,7 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen, toggle } = useSidebar();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <Sidebar />
       <main className={cn('transition-all duration-300', isOpen ? 'pl-64' : 'pl-0')}>
         {!isOpen && (
