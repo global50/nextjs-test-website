@@ -135,7 +135,7 @@ export default function ExplorePage() {
   return (
     <MainLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Discover People</h1>
+        <h1 className="text-3xl font-bold mb-2">Discover People!</h1>
         <p className="text-muted-foreground mb-6">Find and connect with new people</p>
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
